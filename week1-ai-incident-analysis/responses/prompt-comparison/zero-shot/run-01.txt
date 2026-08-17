@@ -1,0 +1,97 @@
+{
+  "known_facts": [
+    {
+      "fact": "Checkout error-rate increased from 0.4% to 9% at 10:04 UTC.",
+      "source_text": "Incident description"
+    },
+    {
+      "fact": "Deployment dep-1842 for checkout-api completed at 10:01 UTC.",
+      "source_text": "Deployment log"
+    },
+    {
+      "fact": "Database latency increased around the same time as the deployment and checkout failures.",
+      "source_text": "Monitoring logs"
+    },
+    {
+      "fact": "External payment provider reported intermittent errors at 10:04 UTC.",
+      "source_text": "Payment provider report"
+    },
+    {
+      "fact": "A previous incident with similar symptoms involved an expired service credential.",
+      "source_text": "Incident history"
+    }
+  ],
+  "assumptions": [
+    {
+      "assumption": "The checkout failures are related to the deployment of dep-1842.",
+      "reason": "Checkout failures started immediately after the deployment."
+    },
+    {
+      "assumption": "Increased database latency is a contributing factor to the checkout failures.",
+      "reason": "Checkout failures coincided with increased database latency."
+    }
+  ],
+  "missing_information": [
+    {
+      "information": "The exact time when the database latency started increasing.",
+      "why_needed": "To determine if it correlates precisely with the deployment or other events."
+    },
+    {
+      "information": "Details of the changes in dep-1842, especially related to checkout-api.",
+      "why_needed": "To identify any specific code changes that might have caused issues."
+    },
+    {
+      "information": "The exact nature and scope of the external payment provider's errors.",
+      "why_needed": "To assess if they are a contributing factor or an independent issue."
+    }
+  ],
+  "candidate_hypotheses": [
+    {
+      "hypothesis": "Checkout failures are due to changes in dep-1842 that introduced bugs affecting checkout-api.",
+      "supporting_evidence": ["Deployment of dep-1842 occurred just before the failure increase.", "Checkout failures started immediately after deployment."],
+      "contradicting_or_limiting_evidence": [],
+      "evidence_needed": ["Detailed logs from dep-1842", "Specific changes in checkout-api"]
+    },
+    {
+      "hypothesis": "Increased database latency is causing the checkout failures.",
+      "supporting_evidence": ["Database latency increased at the same time as checkout failures.", "Checkout failures started immediately after deployment."],
+      "contradicting_or_limiting_evidence": [],
+      "evidence_needed": ["Latency metrics before and during the deployment", "Impact of latency on checkout-api"]
+    },
+    {
+      "hypothesis": "External payment provider errors are causing or exacerbating the checkout failures.",
+      "supporting_evidence": ["Payment provider reported intermittent errors at 10:04 UTC.", "Checkout failures started immediately after deployment."],
+      "contradicting_or_limiting_evidence": [],
+      "evidence_needed": ["Details of payment provider's errors", "Impact on checkout-api"]
+    },
+    {
+      "hypothesis": "An expired service credential is the root cause.",
+      "supporting_evidence": ["A previous incident involved an expired service credential.", "Checkout failures started immediately after deployment."],
+      "contradicting_or_limiting_evidence": [],
+      "evidence_needed": ["Service credentials status before and during the deployment"]
+    }
+  ],
+  "likely_cause_assessment": {
+    "leading_hypothesis": "Checkout failures are due to changes in dep-1842 that introduced bugs affecting checkout-api.",
+    "confidence": "medium",
+    "reason": "Checkout failures started immediately after the deployment, and there is no strong evidence contradicting this hypothesis."
+  },
+  "reversible_next_actions": [
+    {
+      "action": "Roll back to the previous version of dep-1842.",
+      "expected_observation": "Reduction in checkout error-rate if the issue was introduced by the new deployment.",
+      "risk_or_precondition": "Deployment rollback may cause downtime."
+    },
+    {
+      "action": "Monitor database latency and payment provider errors after rollback.",
+      "expected_observation": "Improvement in checkout-api performance if the issues were caused by increased latency or external service problems.",
+      "risk_or_precondition": "No additional risk beyond monitoring."
+    }
+  ],
+  "rollback_recommendation": {
+    "decision": "conditional",
+    "reason": "There is a medium confidence that the issue is related to dep-1842, but further investigation is needed. A conditional rollback allows for quick resolution if the hypothesis is correct.",
+    "preconditions": ["Detailed logs and code changes from dep-1842 are available."]
+  },
+  "uncertainty_statement": "The root cause of the checkout failures is not definitively identified due to missing information about specific deployment changes, database latency metrics before the incident, and the exact nature of payment provider errors. Further investigation is required."
+}

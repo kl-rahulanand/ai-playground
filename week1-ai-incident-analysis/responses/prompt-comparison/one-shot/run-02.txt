@@ -1,0 +1,106 @@
+{
+  "known_facts": [
+    {
+      "fact": "Checkout error-rate increased from 0.4% to 9%.",
+      "source_text": "checkout error-rate alert fired after failures increased from 0.4% to 9%"
+    },
+    {
+      "fact": "Deployment dep-1842 for checkout-api completed at 10:01 UTC.",
+      "source_text": "Deployment dep-1842 for checkout-api completed at 10:01 UTC."
+    },
+    {
+      "fact": "Database latency increased around the same time as the deployment and error increase.",
+      "source_text": "Database latency increased at approximately the same time."
+    },
+    {
+      "fact": "External payment provider reported intermittent errors during this period.",
+      "source_text": "The external payment provider reported intermittent errors."
+    }
+  ],
+  "assumptions": [
+    {
+      "assumption": "The deployment and database latency increase affected the same requests.",
+      "reason": "The incident does not establish this relationship."
+    },
+    {
+      "assumption": "Intermittent payment provider errors are related to checkout failures.",
+      "reason": "Correlation in time is noted but causation has not been established."
+    }
+  ],
+  "missing_information": [
+    {
+      "information": "Checkout error logs and traces separated by version or deployment.",
+      "why_needed": "To determine if the deployment introduced a regression or if other factors are involved."
+    },
+    {
+      "information": "Database queries and their execution times for checkout requests.",
+      "why_needed": "This would help identify if database latency is due to specific queries or overall load."
+    }
+  ],
+  "candidate_hypotheses": [
+    {
+      "hypothesis": "Deployment regression in checkout-api",
+      "supporting_evidence": [
+        "Checkout error-rate increased shortly after the deployment.",
+        "Database latency increased at approximately the same time."
+      ],
+      "contradicting_or_limiting_evidence": [
+        "Temporal proximity alone does not establish causation."
+      ],
+      "evidence_needed": [
+        "Checkout logs and traces separated by version or deployment."
+      ]
+    },
+    {
+      "hypothesis": "Database performance issue",
+      "supporting_evidence": [
+        "Database latency increased at approximately the same time as the error increase.",
+        "Checkout errors may be due to database timeouts or failures."
+      ],
+      "contradicting_or_limiting_evidence": [
+        "The report does not show that checkout requests experienced the increased latency."
+      ],
+      "evidence_needed": [
+        "Database query logs and execution times for checkout requests."
+      ]
+    },
+    {
+      "hypothesis": "Payment provider issue",
+      "supporting_evidence": [
+        "External payment provider reported intermittent errors during this period.",
+        "Checkout failures may be due to failed payment processing."
+      ],
+      "contradicting_or_limiting_evidence": [
+        "The report does not show that checkout requests experienced the payment provider's errors."
+      ],
+      "evidence_needed": [
+        "Payment logs and traces for checkout requests."
+      ]
+    }
+  ],
+  "likely_cause_assessment": {
+    "leading_hypothesis": null,
+    "confidence": "low",
+    "reason": "The supplied evidence cannot distinguish the hypotheses. Further investigation is required."
+  },
+  "reversible_next_actions": [
+    {
+      "action": "Compare checkout logs and traces between old and new versions.",
+      "expected_observation": "A version-specific difference would strengthen or weaken the deployment hypothesis.",
+      "risk_or_precondition": "Both versions must still be observable."
+    },
+    {
+      "action": "Monitor database query performance for checkout requests.",
+      "expected_observation": "Performance metrics would indicate if specific queries are causing latency issues.",
+      "risk_or_precondition": "Ensure that monitoring does not impact production."
+    }
+  ],
+  "rollback_recommendation": {
+    "decision": "conditional",
+    "reason": "Consider a controlled traffic shift if it is safe and reversible, especially if the deployment hypothesis gains support.",
+    "preconditions": [
+      "Confirm version compatibility and data integrity."
+    ]
+  },
+  "uncertainty_statement": "No root cause has been established. Further investigation is required to determine the exact cause of checkout failures."
+}

@@ -1,0 +1,84 @@
+Analyse the following incident.
+
+Return only one valid JSON object. Do not use Markdown or place the JSON inside
+a code fence.
+
+Use this structure:
+
+{
+  "known_facts": [
+    {
+      "fact": "string",
+      "source_text": "string"
+    }
+  ],
+  "assumptions": [
+    {
+      "assumption": "string",
+      "reason": "string"
+    }
+  ],
+  "missing_information": [
+    {
+      "information": "string",
+      "why_needed": "string"
+    }
+  ],
+  "candidate_hypotheses": [
+    {
+      "hypothesis": "string",
+      "supporting_evidence": ["string"],
+      "contradicting_or_limiting_evidence": ["string"],
+      "evidence_needed": ["string"]
+    }
+  ],
+  "likely_cause_assessment": {
+    "leading_hypothesis": "string or null",
+    "confidence": "low, medium, or high",
+    "reason": "string"
+  },
+  "reversible_next_actions": [
+    {
+      "action": "string",
+      "expected_observation": "string",
+      "risk_or_precondition": "string"
+    }
+  ],
+  "rollback_recommendation": {
+    "decision": "rollback, do_not_rollback, conditional, or insufficient_evidence",
+    "reason": "string",
+    "preconditions": ["string"]
+  },
+  "uncertainty_statement": "string"
+}
+
+Rules:
+
+1. Preserve the supplied facts.
+2. Separate observations from interpretations.
+3. Do not invent logs, metrics, events, configuration changes, or system behaviour.
+4. Do not claim a confirmed root cause unless the evidence establishes it.
+5. Correlation in time is not proof of causation.
+6. A valid JSON structure does not guarantee factual correctness.
+
+Incident:
+
+INC-104 — Checkout failures after a deployment
+
+At 10:04 UTC, the checkout error-rate alert fired after failures increased from
+0.4% to 9%.
+
+Deployment dep-1842 for checkout-api completed at 10:01 UTC.
+
+Database latency increased at approximately the same time.
+
+The external payment provider reported intermittent errors.
+
+A previous incident with similar symptoms involved an expired service credential.
+
+The incident director asks:
+
+What is the likely cause, and should we roll back?
+
+Known limitation: this incident brief contains initial reports, not a confirmed
+timeline or root cause.

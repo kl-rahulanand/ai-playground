@@ -1,0 +1,115 @@
+Analyse an incident by separating facts, assumptions, hypotheses, missing
+evidence, reversible actions, and uncertainty.
+
+Return only one valid JSON object. Do not use Markdown or place the JSON inside
+a code fence.
+
+Example:
+
+Incident:
+An API error rate increased shortly after a deployment. Network packet loss was
+also reported. No confirmed timeline is available.
+
+Response:
+{
+  "known_facts": [
+    {
+      "fact": "An API error-rate increase was reported.",
+      "source_text": "An API error rate increased"
+    },
+    {
+      "fact": "A deployment and network packet loss were reported.",
+      "source_text": "shortly after a deployment. Network packet loss was also reported"
+    }
+  ],
+  "assumptions": [
+    {
+      "assumption": "The deployment and packet loss affected the same requests.",
+      "reason": "The incident does not establish this relationship."
+    }
+  ],
+  "missing_information": [
+    {
+      "information": "Failure rates separated by application version.",
+      "why_needed": "This would help distinguish a deployment regression from a shared dependency failure."
+    }
+  ],
+  "candidate_hypotheses": [
+    {
+      "hypothesis": "Deployment regression",
+      "supporting_evidence": [
+        "The deployment occurred near the reported error increase."
+      ],
+      "contradicting_or_limiting_evidence": [
+        "Temporal proximity alone does not establish causation."
+      ],
+      "evidence_needed": [
+        "Errors separated by application version."
+      ]
+    },
+    {
+      "hypothesis": "Network degradation",
+      "supporting_evidence": [
+        "Network packet loss was reported."
+      ],
+      "contradicting_or_limiting_evidence": [
+        "The report does not show that the affected API requests experienced the packet loss."
+      ],
+      "evidence_needed": [
+        "Request traces and network measurements."
+      ]
+    }
+  ],
+  "likely_cause_assessment": {
+    "leading_hypothesis": null,
+    "confidence": "low",
+    "reason": "The supplied evidence cannot distinguish the hypotheses."
+  },
+  "reversible_next_actions": [
+    {
+      "action": "Compare errors between old and new application versions.",
+      "expected_observation": "A version-specific difference would strengthen or weaken the deployment hypothesis.",
+      "risk_or_precondition": "Both versions must still be observable."
+    }
+  ],
+  "rollback_recommendation": {
+    "decision": "conditional",
+    "reason": "Consider a controlled traffic shift if it is safe and reversible.",
+    "preconditions": [
+      "Confirm version and data compatibility."
+    ]
+  },
+  "uncertainty_statement": "No root cause has been established."
+}
+
+Now analyse the following incident using exactly the same JSON structure.
+
+Rules:
+
+1. Preserve the supplied facts.
+2. Separate observations from interpretations.
+3. Do not invent logs, metrics, events, configuration changes, or system behaviour.
+4. Do not claim a confirmed root cause unless the evidence establishes it.
+5. Correlation in time is not proof of causation.
+
+Incident:
+
+INC-104 — Checkout failures after a deployment
+
+At 10:04 UTC, the checkout error-rate alert fired after failures increased from
+0.4% to 9%.
+
+Deployment dep-1842 for checkout-api completed at 10:01 UTC.
+
+Database latency increased at approximately the same time.
+
+The external payment provider reported intermittent errors.
+
+A previous incident with similar symptoms involved an expired service credential.
+
+The incident director asks:
+
+What is the likely cause, and should we roll back?
+
+Known limitation: this incident brief contains initial reports, not a confirmed
+timeline or root cause.

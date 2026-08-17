@@ -1,0 +1,92 @@
+{
+  "known_facts": [
+    {
+      "fact": "Checkout error-rate alert fired at 10:04 UTC with failures increasing from 0.4% to 9%",
+      "source_text": "Incident brief"
+    },
+    {
+      "fact": "Deployment dep-1842 for checkout-api completed at 10:01 UTC",
+      "source_text": "Incident brief"
+    },
+    {
+      "fact": "Database latency increased around the same time as the checkout failures",
+      "source_text": "Incident brief"
+    },
+    {
+      "fact": "External payment provider reported intermittent errors",
+      "source_text": "Incident brief"
+    },
+    {
+      "fact": "A previous incident with similar symptoms involved an expired service credential",
+      "source_text": "Incident brief"
+    }
+  ],
+  "assumptions": [
+    {
+      "assumption": "The deployment at 10:01 UTC is the most recent one.",
+      "reason": "No other deployments are mentioned in the incident brief."
+    },
+    {
+      "assumption": "Checkout failures directly impact the error-rate alert.",
+      "reason": "Error-rate alerts are typically configured to detect such anomalies."
+    }
+  ],
+  "missing_information": [
+    {
+      "information": "The exact time when database latency increased and how it correlates with checkout failures",
+      "why_needed": "To determine if the increase in database latency is concurrent or precedes the checkout failures."
+    },
+    {
+      "information": "Details of the external payment provider's errors, including timestamps and affected transactions.",
+      "why_needed": "To assess whether these errors are related to the checkout failures."
+    }
+  ],
+  "candidate_hypotheses": [
+    {
+      "hypothesis": "Checkout API deployment (dep-1842) introduced a bug causing increased checkout failures.",
+      "supporting_evidence": ["Deployment completed shortly before the error increase", "No other recent deployments"],
+      "contradicting_or_limiting_evidence": ["Database latency increased at approximately the same time", "External payment provider reported errors"],
+      "evidence_needed": ["Version comparison between old and new checkout API versions", "Request traces from failed checkouts"]
+    },
+    {
+      "hypothesis": "Increased database latency is causing checkout failures.",
+      "supporting_evidence": ["Database latency increased around the same time as checkout failures", "Checkout failures are increasing"],
+      "contradicting_or_limiting_evidence": ["External payment provider reported errors", "No direct evidence linking database issues to checkout failures"],
+      "evidence_needed": ["Correlation between database latency and failed checkouts", "Database logs during the incident"]
+    },
+    {
+      "hypothesis": "The external payment provider's intermittent errors are causing checkout failures.",
+      "supporting_evidence": ["External payment provider reported errors", "Checkout failures increased"],
+      "contradicting_or_limiting_evidence": ["No direct evidence linking provider errors to checkout failures", "Database latency increased at approximately the same time"],
+      "evidence_needed": ["Correlation between provider errors and failed checkouts", "Provider logs during the incident"]
+    }
+  ],
+  "likely_cause_assessment": {
+    "leading_hypothesis": null,
+    "confidence": "medium",
+    "reason": "Multiple hypotheses are plausible, but none have conclusive evidence. The deployment is a recent change, database latency increased at the same time, and external provider errors were reported."
+  },
+  "reversible_next_actions": [
+    {
+      "action": "Roll back to the previous version of checkout API",
+      "expected_observation": "Checkout failures should decrease if the issue was introduced by the latest deployment.",
+      "risk_or_precondition": "Risk of introducing a regression from an older, possibly less stable version."
+    },
+    {
+      "action": "Monitor database latency and correlate it with checkout failures",
+      "expected_observation": "If database latency is causing checkout failures, reducing latency should improve performance.",
+      "risk_or_precondition": "Potential for increased load on the database if not properly managed."
+    },
+    {
+      "action": "Investigate external payment provider's errors in more detail",
+      "expected_observation": "Provider issues may be resolved or confirmed as a root cause, leading to corrective actions.",
+      "risk_or_precondition": "Risk of missing other underlying causes if the provider is not involved."
+    }
+  ],
+  "rollback_recommendation": {
+    "decision": "conditional",
+    "reason": "There are multiple plausible hypotheses. Rolling back may help isolate the issue but does not guarantee resolution.",
+    "preconditions": ["Confirm that rollback will not introduce additional risks or regressions", "Monitor database latency and provider errors during rollback"]
+  },
+  "uncertainty_statement": "The root cause of checkout failures is uncertain due to concurrent changes in multiple systems. Further investigation is required before confirming a single root cause."
+}

@@ -1,0 +1,90 @@
+temprature =0.8
+top p sampling 0.9
+min p = 0..05
+
+{
+  "known_facts": [
+    {
+      "fact": "Checkout error-rate increased from 0.4% to 9%.",
+      "source_text": "At 10:04 UTC, the checkout error-rate alert fired after failures increased from 0.4% to 9%. "
+    },
+    {
+      "fact": "Deployment dep-1842 for checkout-api completed at 10:01 UTC.",
+      "source_text": "Deployment dep-1842 for checkout-api completed at 10:01 UTC."
+    },
+    {
+      "fact": "Database latency increased at approximately the same time as the checkout errors.",
+      "source_text": "Database latency increased at approximately the same time. "
+    },
+    {
+      "fact": "The external payment provider reported intermittent errors.",
+      "source_text": "The external payment provider reported intermittent errors."
+    },
+    {
+      "fact": "A previous incident with similar symptoms involved an expired service credential.",
+      "source_text": "A previous incident with similar symptoms involved an expired service credential."
+    }
+  ],
+  "assumptions": [
+    {
+      "assumption": "The deployment of checkout-api might be related to the increase in error rates.",
+      "reason": "The checkout error-rate alert fired just after the completion of the deployment."
+    },
+    {
+      "assumption": "Database latency is affecting the checkout process and could contribute to higher failure rates.",
+      "reason": "Database latency was reported to have increased around the same time as the checkout failures."
+    },
+    {
+      "assumption": "Interruptions from the external payment provider might exacerbate issues during critical times like checkout.",
+      "reason": "The external payment provider reported intermittent errors which could overlap with high-demand periods such as when a deployment is rolled out."
+    }
+  ],
+  "missing_information": [
+    {
+      "information": "Specific metrics or logs related to the database and API performance during the incident time period.",
+      "why_needed": "To identify any specific issues in the deployment of checkout-api that could be causing increased latency or errors."
+    },
+    {
+      "information": "The exact timeline of when the external payment provider started reporting intermittent errors, particularly in relation to the timing of the deployment and checkout failures.",
+      "why_needed": "To determine if the payment provider's issues coincided with the critical period of increased error rates for checkouts."
+    }
+  ],
+  "candidate_hypotheses": [
+    {
+      "hypothesis": "The deployment of checkout-api introduced a bug or configuration change that is causing increased database latency and, consequently, higher error rates.",
+      "supporting_evidence": ["Deployment dep-1842 for checkout-api completed at 10:01 UTC.", "Database latency increased at approximately the same time as the checkout errors."],
+      "contradicting_or_limiting_evidence": ["A previous incident with similar symptoms involved an expired service credential."],
+      "evidence_needed": ["Specific logs or metrics from the deployment, including any changes to the API that could affect database queries."]
+    },
+    {
+      "hypothesis": "The external payment provider's intermittent errors are causing failures in checkouts.",
+      "supporting_evidence": ["External payment provider reported intermittent errors.", "Checkout error-rate increased from 0.4% to 9%."],
+      "contradicting_or_limiting_evidence": ["Database latency increased at approximately the same time as the checkout failures."],
+      "evidence_needed": ["Logs or metrics showing a direct correlation between payment provider's errors and checkout failure rates."]
+    },
+    {
+      "hypothesis": "The increase in database latency is due to an overload of queries caused by the deployment.",
+      "supporting_evidence": ["Checkout error-rate increased from 0.4% to 9%.", "Database latency increased at approximately the same time."],
+      "contradicting_or_limiting_evidence": [],
+      "evidence_needed": ["Performance logs or metrics during the incident period to confirm a spike in database queries."]
+    }
+  ],
+  "likely_cause_assessment": {
+    "leading_hypothesis": "The deployment of checkout-api introduced a bug or configuration change that is causing increased database latency and, consequently, higher error rates.",
+    "confidence": "medium",
+    "reason": "The timing aligns with the deployment and the increase in errors. However, previous similar incidents suggest alternative causes."
+  },
+  "reversible_next_actions": [
+    {
+      "action": "Roll back checkout-api to the previous version.",
+      "expected_observation": "Immediate improvement or resolution of checkout error rates if it was a bug introduced by the deployment.",
+      "risk_or_precondition": "Risk of regression in other features if not thoroughly tested."
+    }
+  ],
+  "rollback_recommendation": {
+    "decision": "conditional",
+    "reason": "There is medium confidence that the leading hypothesis is correct. A rollback should be done, but it must be followed by a thorough investigation and testing to ensure no side effects.",
+    "preconditions": ["Thorough regression tests are passed."]
+  },
+  "uncertainty_statement": "There is uncertainty about whether the increased database latency was caused directly by the checkout-api deployment or exacerbated by other factors such as payment provider issues."
+}
