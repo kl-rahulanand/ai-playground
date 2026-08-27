@@ -1,0 +1,188 @@
+{
+  "known_facts": [
+    {
+      "fact": "Checkout error-rate alert fired at 10:04 UTC",
+      "source_text": "At 10:04 UTC, the checkout error-rate alert fired"
+    },
+    {
+      "fact": "Checkout error rate increased from 0.4% to 9%",
+      "source_text": "failures increased from 0.4% to 9%"
+    },
+    {
+      "fact": "Deployment dep-1842 for checkout-api completed at 10:01 UTC",
+      "source_text": "Deployment dep-1842 for checkout-api completed at 10:01 UTC"
+    },
+    {
+      "fact": "Database latency increased at approximately the same time",
+      "source_text": "Database latency increased at approximately the same time"
+    },
+    {
+      "fact": "External payment provider reported intermittent errors",
+      "source_text": "The external payment provider reported intermittent errors"
+    },
+    {
+      "fact": "A previous incident with similar symptoms involved an expired service credential",
+      "source_text": "A previous incident with similar symptoms involved an expired service credential"
+    }
+  ],
+  "assumptions": [
+    {
+      "assumption": "The alert firing at 10:04 UTC reflects an incident that began shortly after 10:01 UTC",
+      "reason": "The brief states times are approximate and alert time differs from incident-start time; we assume a narrow window but do not claim exact causality"
+    },
+    {
+      "assumption": "Database latency increase is observable and measurable",
+      "reason": "The brief reports it as fact; we assume monitoring systems captured it"
+    },
+    {
+      "assumption": "The payment provider's intermittent errors are independent reports, not yet correlated to our system",
+      "reason": "The brief does not state causation; we treat it as a separate system's failure report"
+    }
+  ],
+  "missing_information": [
+    {
+      "information": "Exact start time of the incident (when errors began)",
+      "why_needed": "To establish whether the incident preceded, coincided with, or followed the deployment"
+    },
+    {
+      "information": "What changes were deployed in dep-1842",
+      "why_needed": "To determine whether the code change could have caused database latency, payment provider calls, or both"
+    },
+    {
+      "information": "Whether database latency occurred before or after the deployment",
+      "why_needed": "To rule out database issues as a root cause independent of the deployment"
+    },
+    {
+      "information": "Pattern and timing of payment provider errors (intermittent when, how often, which endpoints)",
+      "why_needed": "To determine whether the payment provider's issues are a primary cause or a secondary effect"
+    },
+    {
+      "information": "Logs or traces from checkout-api instances during the 10:01–10:04 UTC window",
+      "why_needed": "To see whether the deployment introduced a bug, misconfiguration, or credential issue"
+    },
+    {
+      "information": "Service credential expiry status and rotation schedule for checkout-api",
+      "why_needed": "To assess whether credential expiry is relevant, as a prior incident involved this"
+    }
+  ],
+  "candidate_hypotheses": [
+    {
+      "hypothesis": "Deployment dep-1842 introduced a bug or misconfiguration that caused checkout-api to make invalid or excessive payment provider calls, triggering their intermittent errors and also increasing database load",
+      "supporting_evidence": [
+        "Deployment completed at 10:01 UTC, alert fired 3 minutes later at 10:04 UTC (temporal proximity)",
+        "Database latency increased at approximately the same time, suggesting a change in load or query pattern"
+      ],
+      "contradicting_or_limiting_evidence": [
+        "The payment provider independently reported intermittent errors, which could indicate a provider-side issue",
+        "Brief does not confirm that payment calls increased; latency increase is not attributed to any system"
+      ],
+      "evidence_needed": [
+        "Details of code changes in dep-1842",
+        "Logs showing whether checkout-api calls to payment provider increased in volume or failed before reaching the provider",
+        "Database query patterns before and after 10:01 UTC"
+      ]
+    },
+    {
+      "hypothesis": "The payment provider experienced an outage or internal issue, and checkout-api's retry logic or error handling is inadequate, causing cascading failures and database latency from accumulated connection attempts",
+      "supporting_evidence": [
+        "Payment provider reported intermittent errors independently",
+        "Database latency increased, consistent with connection pooling exhaustion or retry storms"
+      ],
+      "contradicting_or_limiting_evidence": [
+        "The brief does not state that the payment provider outage was widespread or that retry storms were observed",
+        "Temporal alignment with deployment suggests deployment may be a contributing factor"
+      ],
+      "evidence_needed": [
+        "Payment provider's incident timeline and scope (was it truly intermittent, or a brief outage?)",
+        "Connection pool and retry metrics from checkout-api during the incident",
+        "Error logs showing whether retries or timeouts are driving database latency"
+      ]
+    },
+    {
+      "hypothesis": "A service credential (e.g., API key or certificate for the payment provider) expired or became invalid on or near 10:01 UTC, causing payment calls to fail; the deployment coincidentally completed at the same time",
+      "supporting_evidence": [
+        "A previous incident with similar symptoms involved an expired service credential",
+        "Payment provider reported intermittent errors, consistent with auth failures"
+      ],
+      "contradicting_or_limiting_evidence": [
+        "Brief does not state that credential expiry was detected or that logs show auth failures",
+        "Deployment and credential expiry at the same minute is a coincidence unless there is a credential rotation process tied to deployments"
+      ],
+      "evidence_needed": [
+        "Credential expiry timestamp and rotation logs",
+        "Auth error logs from checkout-api or payment provider",
+        "Whether dep-1842 involved any credential or secret rotation"
+      ]
+    },
+    {
+      "hypothesis": "Database performance degraded independently (e.g., resource exhaustion, lock contention, or query regression), and checkout-api is sensitive to latency, causing timeouts and cascading errors that reach the payment provider",
+      "supporting_evidence": [
+        "Database latency increased at approximately the same time as the alert",
+        "Checkout failures could result from database timeouts"
+      ],
+      "contradicting_or_limiting_evidence": [
+        "Brief does not confirm database errors or a specific resource bottleneck",
+        "Payment provider independently reported errors, suggesting a separate issue",
+        "Deployment suggests a code change, not a database maintenance event"
+      ],
+      "evidence_needed": [
+        "Database query logs, lock waits, and resource metrics (CPU, memory, I/O) during 10:01–10:04 UTC",
+        "Whether database version, indexing, or configuration changed around this time",
+        "Timeout and retry patterns in checkout-api logs"
+      ]
+    }
+  ],
+  "likely_cause_assessment": {
+    "leading_hypothesis": null,
+    "confidence": "low",
+    "reason": "The brief provides three correlated observations (deployment, database latency, payment provider errors) but does not establish causal chains or eliminate alternatives. Temporal proximity of the deployment and alert does not confirm causality. The payment provider's independent report suggests an external factor, but we cannot rule out that checkout-api's recent change triggered a cascade. Credential expiry is plausible given a prior incident but not confirmed. Without logs, code details, or provider status, no single hypothesis is sufficiently supported."
+  },
+  "reversible_next_actions": [
+    {
+      "action": "Retrieve and inspect the code diff and deployment manifest for dep-1842",
+      "expected_observation": "If the deployment introduced a retry loop, excessive payment provider calls, or database query change, those should be visible in the diff",
+      "risk_or_precondition": "Low risk; this is a read-only audit action"
+    },
+    {
+      "action": "Query checkout-api logs for the 10:01–10:04 UTC window and count payment provider call attempts, errors, and timeout messages",
+      "expected_observation": "If the deployment caused failures, logs should show a spike in call volume, auth failures, or timeout errors coinciding with 10:01 UTC",
+      "risk_or_precondition": "Low risk; this is a read-only audit action"
+    },
+    {
+      "action": "Check service credential expiry times and rotation logs for the payment provider API key used by checkout-api",
+      "expected_observation": "If a credential expired at or near 10:01 UTC, logs should show the expiry event and any rotation attempt; auth errors in checkout-api logs should correlate",
+      "risk_or_precondition": "Low risk; this is a read-only audit action"
+    },
+    {
+      "action": "Query database metrics (CPU, memory, I/O, lock waits, query latency) for the 10:00–10:05 UTC window",
+      "expected_observation": "If database performance degraded due to resource exhaustion, metrics should show a spike; if due to a slow query, query logs should identify it",
+      "risk_or_precondition": "Low risk; this is a read-only audit action"
+    },
+    {
+      "action": "Contact the payment provider to confirm the exact timeline, scope, and nature of their intermittent errors",
+      "expected_observation": "If their issue was independent and widespread, they should report an outage or alert in their timeline; if limited to our calls, they may report auth or rate-limit errors",
+      "risk_or_precondition": "Low risk; this is an external inquiry"
+    },
+    {
+      "action": "If credential expiry is suspected, attempt to rotate the payment provider API key and observe whether new calls succeed",
+      "expected_observation": "If credential expiry is the cause, rotating should immediately reduce errors; if not, errors will persist",
+      "risk_or_precondition": "Moderate risk; rotating a credential in production can cause new failures if the new key is not valid or if other systems still hold the old key. Perform in a controlled manner or on a canary."
+    },
+    {
+      "action": "Compare error rate and database latency before and after the deployment using observability dashboards",
+      "expected_observation": "If the deployment is responsible, metrics should show a clear step change at 10:01 UTC; if the payment provider is the cause, the error rate may lag or vary independently",
+      "risk_or_precondition": "Low risk; this is a read-only audit action"
+    }
+  ],
+  "rollback_recommendation": {
+    "decision": "conditional",
+    "reason": "Rollback is justified if evidence points to the deployment as the primary cause (e.g., code diff shows a retry loop, auth failure, or query regression). It is not justified if the root cause is an external payment provider outage or credential expiry unrelated to the deployment. The 3-minute delay between deployment completion (10:01) and alert firing (10:04) is consistent with deployment-driven failures but not diagnostic on its own. Until logs confirm the deployment's involvement, rollback carries the risk of masking a real external failure and wasting time if the incident is external.",
+    "preconditions": [
+      "Retrieve checkout-api logs showing payment provider call patterns and errors between 10:01–10:04 UTC",
+      "Confirm that database latency was not caused by an independent database incident",
+      "Verify that the payment provider's errors are not part of a widespread outage on their side",
+      "If credential expiry is suspected, confirm that the old key did expire and that rotation does not resolve the issue (to rule out the deployment as a credential-related fix)"
+    ]
+  },
+  "uncertainty_statement": "This incident has three correlated but potentially independent root causes: the deployment, the payment provider, and database latency. Without logs, code details, and a confirmed payment provider status, we cannot identify which caused the others or whether multiple factors combined. The brief does not confirm that the deployment triggered the payment provider errors, that the payment provider triggered database latency, or that any of the three are connected. A previous credential-expiry incident raises the hypothesis that a similar event occurred, but this is not confirmed. Reversible investigation actions are needed before committing to a rollback or mitigation."
+}

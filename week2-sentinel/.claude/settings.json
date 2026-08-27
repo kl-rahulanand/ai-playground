@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(uv run:*)",
+      "Bash(uv sync)",
+      "Bash(uv add:*)",
+      "Read(//Users/caw-dev-m4-5/Desktop/ai-playground/week2-sentinel/**)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  },
+  "env": {
+    "SENTINEL_MODEL": "claude-haiku-4-5"
+  }
+}
