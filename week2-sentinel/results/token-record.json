@@ -1,0 +1,16 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "counted_input_tokens_no_schema": 560,
+  "actual_input_tokens_with_schema": 2639,
+  "schema_token_overhead": 2079,
+  "output_tokens": 3151,
+  "thinking_tokens": "n/a (thinking not enabled; when on, counted within output_tokens on Haiku)",
+  "max_output_tokens_limit": 8000,
+  "latency_seconds": 54.78,
+  "stop_reason": "end_turn",
+  "estimated_cost_usd": 0.018394,
+  "cost_breakdown_usd": {
+    "input": 0.002639,
+    "output": 0.015755
+  }
+}

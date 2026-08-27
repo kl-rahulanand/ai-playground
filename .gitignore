@@ -1,0 +1,22 @@
+# --- Secrets: never commit these ---
+.env
+.env.*
+!.env.example
+*.key
+secrets.*
+
+# --- Python / uv ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.uv/
+*.egg-info/
+dist/
+build/
+
+# --- OS / editor ---
+.DS_Store
+*.swp
+.idea/
+.vscode/
