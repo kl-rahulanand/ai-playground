@@ -1,4 +1,8 @@
-# Sentinel — Week 2
+# Sentinel — Week 2 (+ Week 3 tool layer)
+
+> Week 3 adds bounded, validated tool use on top of this code. The code lives
+> in `src/sentinel/tools/`, `investigate.py` and `agent_sdk_investigation.py`;
+> the write-up lives in [`../week3/`](../week3/README.md).
 
 A Claude-powered incident-analysis application. It takes an incident (text and/or
 a dashboard image) and produces a **validated incident analysis** or an

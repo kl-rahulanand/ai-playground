@@ -26,10 +26,19 @@ week2-sentinel/
 │   ├── compare_thinking.py  # Section 6: direct vs thinking
 │   ├── token_report.py / metrics.py            # Section 7: tokens + cost
 │   ├── prompt_cache.py      # Section 8: caching experiment
-│   └── tool_preview.py      # Section 9: tool_use / tool_result lifecycle
+│   ├── tool_preview.py      # Section 9: tool_use / tool_result lifecycle
+│   ├── investigate.py       # Week 3: bounded tool investigation (custom loop CLI)
+│   ├── agent_sdk_investigation.py  # Week 3: same investigation on the Claude Agent SDK
+│   └── tools/               # Week 3 tool layer
+│       ├── registry.py      #   tool specs (Pydantic input models -> schema) + mocked data
+│       ├── policy.py        #   allow-lists, value limits, identities/roles, blocked actions, loop limits
+│       ├── guards.py        #   pure checks: allow-list, schema, authz, limits, bounded exec, output
+│       ├── hooks.py         #   deterministic pre/post tool hooks (deny destructive; wrap untrusted)
+│       └── loop.py          #   the bounded tool-execution loop + trace records
+├── tests/                   # offline pytest suite (fake client); security regression cases
 ├── incidents/               # incident briefs + generated dashboard PNG
-├── results/                 # saved run artifacts (JSON records)
-└── docs/                    # per-section notes (01..09)
+├── results/                 # saved run artifacts (JSON records + week3-* traces)
+└── docs/                    # Week 2 per-section notes (01..10); Week 3 docs live in ../week3/
 ```
 
 ## Build & test commands
@@ -37,8 +46,10 @@ week2-sentinel/
 - Run any module:       `uv run python -m sentinel.<module>`
 - Quick import check:   `uv run python -c "import sentinel.validate"`
 - Regenerate dashboard: `uv run python -m sentinel.generate_dashboard`
-There is no separate test suite yet; each module has a runnable `main()` that
-doubles as a smoke test.
+- Offline test suite:   `uv run pytest -q` (no network; scripted fake client)
+- Week 3 investigation: `uv run python -m sentinel.investigate [inc-104] [--role ...]`
+- Week 3 on Agent SDK:  `uv run python -m sentinel.agent_sdk_investigation`
+Each module also has a runnable `main()` that doubles as a live smoke test.
 
 ## Coding conventions
 - Python 3.14, managed with `uv`. Standard library + `anthropic`, `pydantic`,
@@ -52,6 +63,14 @@ doubles as a smoke test.
 - Never trust a response until it passes all validation layers. A truncated
   (`stop_reason == "max_tokens"`) or interrupted response is a failure, not a
   short answer.
+- Tool inputs follow the same rule: the Pydantic model in `tools/registry.py`
+  is the single source of truth for both the `input_schema` sent to Claude and
+  the validator run on what comes back.
+- Security decisions (allow-lists, roles, limits, blocked actions) live ONLY in
+  `tools/policy.py` + `tools/hooks.py`. Never put them in prompts or in the
+  registry. The model must not be able to see or argue with them.
+- Tool results are untrusted data. They are wrapped by `hooks.post_tool_use`
+  and never interpreted as instructions by application code.
 
 ## Safety boundaries
 - **Never commit secrets.** `.env`, `*.key` are gitignored. Credentials come only
@@ -61,6 +80,12 @@ doubles as a smoke test.
 - Sentinel proposes only **reversible** next actions and never claims a confirmed
   root cause unless the evidence establishes it.
 - Do not weaken Layer 3 support rules to make a response pass.
+- **No production write capability.** Every tool in `tools/registry.py` is
+  read-only over fictional data. `tools/policy.BLOCKED_ACTIONS` names the
+  destructive verbs the pre-tool hook refuses; do not add write tools.
+- The tool loop must always terminate: `LoopLimits` (max calls, max rounds,
+  wall clock, per-tool timeout) are enforced in `tools/loop.py` and are never
+  exposed to the model.
 
 ## Definition of done
 A change is done when:
