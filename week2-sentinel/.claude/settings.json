@@ -5,6 +5,7 @@
       "Bash(uv run:*)",
       "Bash(uv sync)",
       "Bash(uv add:*)",
+      "Bash(uv run pytest:*)",
       "Read(//Users/caw-dev-m4-5/Desktop/ai-playground/week2-sentinel/**)"
     ],
     "deny": [
